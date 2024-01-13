@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/takuoki/gsheets"
+	"github.com/delve/gsheets"
 )
 
 func Example() {

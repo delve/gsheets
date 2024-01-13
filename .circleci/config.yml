@@ -4,7 +4,7 @@ executors:
   go-116:
     docker:
       - image: circleci/golang:1.16
-    working_directory: /go/src/github.com/takuoki/gsheets
+    working_directory: /go/src/github.com/delve/gsheets
 
 orbs:
   codecov: codecov/codecov@1.0.4

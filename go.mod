@@ -1,4 +1,4 @@
-module github.com/takuoki/gsheets
+module github.com/delve/gsheets
 
 go 1.16
 

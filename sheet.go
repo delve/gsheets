@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/takuoki/gsheets/sheets"
+	"github.com/delve/gsheets/sheets"
 )
 
 // Sheet is a sheet of google spreadsheets.

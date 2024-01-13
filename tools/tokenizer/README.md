@@ -5,7 +5,7 @@ This tool generates a token for Google Sheets API.
 ## Installation
 
 ```bash
-go get github.com/takuoki/gsheets/tools/tokenizer
+go get github.com/delve/gsheets/tools/tokenizer
 ```
 
 ## Requirement
