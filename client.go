@@ -5,23 +5,24 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"strings"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"google.golang.org/api/option"
 	sheets "google.golang.org/api/sheets/v4"
 )
 
 // Client is a gsheets client.
 type Client struct {
-	credentials, token string
-	srv                *sheets.Service
+	// credentials, token string
+	options []option.ClientOption
+	srv     *sheets.Service
 
 	scope string
 }
 
+// Type and optionFunc are now only used in NewForCli, which i am not using atm
 // ClientOption is an option function.
 type ClientOption func(c *Client) *Client
 
@@ -34,41 +35,23 @@ func ClientWritable() func(c *Client) *Client {
 }
 
 // New returns a gsheets client.
-func New(ctx context.Context, credentials, token string, opts ...ClientOption) (*Client, error) {
-
+func New(ctx context.Context, opts ...option.ClientOption) (*Client, error) {
 	client := &Client{
-		scope: "https://www.googleapis.com/auth/spreadsheets.readonly",
+		options: opts,
 	}
-
-	for _, opt := range opts {
-		client = opt(client)
-	}
-
-	return new(ctx, credentials, token, client)
+	return new(ctx, client)
 }
 
-func new(ctx context.Context, credentials, token string, initialClient *Client) (*Client, error) {
-
-	config, err := google.ConfigFromJSON([]byte(credentials), initialClient.scope)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse json to config: %v", err)
-	}
-	tok := &oauth2.Token{}
-	if err := json.NewDecoder(strings.NewReader(token)).Decode(tok); err != nil {
-		return nil, fmt.Errorf("unable to parse json to token: %v", err)
-	}
-	srv, err := sheets.New(config.Client(ctx, tok))
+func new(ctx context.Context, initialClient *Client) (*Client, error) {
+	srv, err := sheets.NewService(ctx, initialClient.options...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve Sheets client: %v", err)
 	}
-
-	initialClient.credentials = credentials
-	initialClient.token = token
 	initialClient.srv = srv
-
 	return initialClient, nil
 }
 
+// TODO: Convert this to the way New() works with direct google clientoptions
 // NewForCLI returns a gsheets client.
 // This function is intended for CLI tools.
 func NewForCLI(ctx context.Context, authFile string, opts ...ClientOption) (*Client, error) {
@@ -81,13 +64,13 @@ func NewForCLI(ctx context.Context, authFile string, opts ...ClientOption) (*Cli
 		client = opt(client)
 	}
 
-	cb, err := ioutil.ReadFile(authFile)
+	cb, err := os.ReadFile(authFile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read client secret file: %v", err)
 	}
 
 	tokenFile := "token.json"
-	tb, err := ioutil.ReadFile(tokenFile)
+	tb, err := os.ReadFile(tokenFile)
 
 	var token string
 	if err == nil {
@@ -127,5 +110,7 @@ func NewForCLI(ctx context.Context, authFile string, opts ...ClientOption) (*Cli
 		fmt.Fprint(f, token)
 	}
 
-	return new(ctx, string(cb), token, client)
+	// changed to alloiw compile
+	// return new(ctx, string(cb), token, client)
+	return new(ctx, client)
 }
